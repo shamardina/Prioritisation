@@ -143,7 +143,7 @@ parallel --halt 1 -j ${CORES} --verbose "select_transcript {} ${TMP}/chr{}_${fil
 #  * remove minOPR<0.5 (other FILTERs are better than that)
 
 filter_OPR="FILTER!=\"minOPR_0.5\""
-filter_HGMD="HGMD_CLASS==\"DM\" || HGMD_CLASS==\"DM?\""
+filter_HGMD="HGMD_CLASS==\"DM,DM?\""
 include="(${filter_OPR}) && \
 (\
 ($(AF_filter_2 ${AF_field} ${AF_field_2} ${AF})) || \
@@ -160,12 +160,12 @@ parallel --halt 1 -j ${CORES} --verbose "bcftools index ${TMP}/chr{}_${filename}
 #  * for minor ref (AF>0.5) or non-coding transcripts keep all non-synonymous
 #  * on MT, remove upstream_gene_variant/downstream_gene_variant (because MT doesn't have any intronic/intergenic regions)
 
-include1="VEP_IMPACT==\"MODERATE\" || VEP_IMPACT==\"HIGH\" || VEP_Consequence==\"splice_region_variant\""
+include1="VEP_IMPACT==\"MODERATE,HIGH\" || VEP_Consequence==\"splice_region_variant\""
 include2="(${AF_field}>0.5 || (${AF_field}=\".\" && ${AF_field_2}>0.5) || VEP_BIOTYPE!=\"protein_coding\") && VEP_Consequence!=\"synonymous_variant\""
 include="(${include1}) || (${include2})"
 echo "Variant filtering 2, include: $include"
 
-exclude="CHROM==\"MT\" && (VEP_Consequence==\"downstream_gene_variant\" || VEP_Consequence==\"upstream_gene_variant\")"
+exclude="CHROM==\"MT\" && (VEP_Consequence==\"downstream_gene_variant,upstream_gene_variant\")"
 echo "Variant filtering 2, exclude: $exclude"
 
 parallel --halt 1 -j ${CORES} --verbose "bcftools view -i '"$include"' -Ou ${TMP}/chr{}_${filename}_${DOMAIN}_HGMD_CLNV_transcript_AF_minOPR.bcf.gz | bcftools view -e '"$exclude"' -Ob -o ${TMP}/chr{}_${filename}_${DOMAIN}_HGMD_CLNV_transcript_AF_minOPR_consequence.bcf.gz" ::: $CHROMOSOMES
@@ -182,7 +182,10 @@ format="$(echo [%${output_sample_format} ${output_variant_format}\\n] | sed 's/ 
 echo "Format of the output table: $format"
 
 # NB! | and & vs || and &&:
-include='((GT="alt" & ('$AF_field'<0.5 | ('$AF_field'="." | '$AF_field_2'<0.5))) | (GT!="AA" & GT!="A" & ('$AF_field'>0.5 | ('$AF_field'="." & '$AF_field_2'>0.5)))) & ((GT!="hap" & sSUM(FORMAT/AD)>=10) | (GT="hap" & sSUM(FORMAT/AD)>=5))'
+include1='((GT="alt" & ('$AF_field'<0.5 | ('$AF_field'="." | '$AF_field_2'<0.5))) | (GT!="AA" & GT!="A" & ('$AF_field'>0.5 | ('$AF_field'="." & '$AF_field_2'>0.5)))) & ((GT!="hap" & sSUM(FORMAT/AD)>=10) | (GT="hap" & sSUM(FORMAT/AD)>=5))'
+# in case of homo-/hemizygous minor ref we won't have AD information. Include all of them:
+include2='('$AF_field'>0.5 | ('$AF_field'="." & '$AF_field_2'>0.5)) & (GT=="RR" | GT=="R")'
+include="($include1) | ($include2)"
 echo "Sample filtering, include: $include"
 
 echo ${output_sample_format} ${output_variant_format} | tr " " \\t > ${OUTPUT}/prioritised_variants_${DOMAIN}.tsv
