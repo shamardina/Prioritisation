@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
 
-import pandas as pd
 import sys
 import os.path
+import pandas as pd
 
 
 INPUT = sys.argv[1]

@@ -2,7 +2,6 @@
 
 
 import csv
-import collections
 import sys
 
 

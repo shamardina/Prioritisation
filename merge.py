@@ -3,7 +3,6 @@
 
 import argparse
 import csv
-import collections
 import sys
 import os.path
 
@@ -68,6 +67,7 @@ def parse_arguments():
 
 
 def check_args(args):
+    """Check that files exit; check that fields are present in the headers"""
     for f in [args.filename1, args.filename2]:
         if not os.path.exists(f):
             sys.exit("File {} not found".format(f))
@@ -83,6 +83,7 @@ def check_args(args):
 
 
 def read_annotation(filename, column):
+    """Read annotation data, output dictionary with values form column as key"""
     data = {}
     with open(filename, newline='') as f:
         reader = csv.DictReader(f, delimiter="\t")
