@@ -30,14 +30,14 @@ anno = {}  # with sampleID as key
 
 def how_related(Z0, Z1, Z2, PI_HAT):
     """Based on assign_relatedness.R from Salih Tuna"""
-    z0, z1, z2, pi_hat = [round(float(i)/0.25)*0.25 for i in [Z0, Z1, Z2, PI_HAT]]
+    z0, z1, z2, pi_hat = [round(float(i) / 0.25) * 0.25 for i in [Z0, Z1, Z2, PI_HAT]]
 
     # Check relationship
     # Idenical:
     if z0 == 0 and z1 == 0 and z2 == 1 and pi_hat == 1:
         relationship = "Duplicate or MZ twin"
     # Parent:
-    elif z0 == 0 and z1 == 1 and z2 == 0 and pi_hat==0.5:
+    elif z0 == 0 and z1 == 1 and z2 == 0 and pi_hat == 0.5:
         relationship = "Parent/Offspring"
     # Sibling:
     elif z0 == 0.25 and z1 == 0.5 and z2 == 0.25 and pi_hat == 0.5:
@@ -46,7 +46,7 @@ def how_related(Z0, Z1, Z2, PI_HAT):
     elif z0 == 0.5 and z1 == 0.5 and z2 == 0 and pi_hat == 0.25:
         relationship = "Half sibling/Grandparent/Aunt/Nephew"
     # Cousin:
-    elif z0 == 0.75 and z1 == 0.25 and z2==0:
+    elif z0 == 0.75 and z1 == 0.25 and z2 == 0:
         relationship = "First cousin"
     # Unknown:
     else:
@@ -75,7 +75,7 @@ with open(PARAMS["INCLUDE"], newline='') as f:                   # IlluminaID  w
     for row in reader:
         if row[3] == PARAMS["DOMAIN"]:
             wgs_to_sample[row[1]] = row[2]
-            anno[row[2]]={"WGS_ID": row[1], "In_flagship": "N"}
+            anno[row[2]] = {"WGS_ID": row[1], "In_flagship": "N"}
 
 
 # Flag samples from the flagship release
@@ -86,11 +86,13 @@ with open(PARAMS["FLAGSHIP_INCLUDE"], newline='') as f:          # IlluminaID  w
         flagship_sample_domain[row[2]] = row[3]
         # only if domain and wgsID are the same, we don't need to reanalise:
         if (row[3] == PARAMS["DOMAIN"]) and (row[2] in anno) and (anno[row[2]]["WGS_ID"] == row[1]):
-                anno[row[2]]["In_flagship"] = "Y"
+            anno[row[2]]["In_flagship"] = "Y"
 
 
 # Add genomic sex
-with open(PARAMS["SEX"], newline='') as f:                       # sample(wgsID) XAutoRatio YAutoRatio Hratio declared_gender genotype_gender gender_mismatch discordant_Hratio outside_thresholds flag karyotype
+with open(PARAMS["SEX"], newline='') as f:                       # sample(wgsID) XAutoRatio YAutoRatio Hratio
+                                                                 # declared_gender genotype_gender gender_mismatch
+                                                                 # discordant_Hratio outside_thresholds flag karyotype
     reader = csv.DictReader(f, delimiter="\t")
     for row in reader:
         if row["sample"] in wgs_to_sample:
@@ -138,7 +140,10 @@ with open(PARAMS["RELATED"], newline='') as f:                   # Network FID1 
 
 for sample in anno:
     if sample in sample_network:
-        relatedness = ", ".join(sorted(["{} ({}{})".format(relatedness_type[(sample, rel)], rel, related_domain_annotation(rel, PARAMS["DOMAIN"], flagship_sample_domain)) for rel in sample_network[sample]["samples"]]))
+        relatedness = ", ".join(sorted(["{} ({}{})".format(relatedness_type[(sample, rel)],
+                                                           rel,
+                                                           related_domain_annotation(rel, PARAMS["DOMAIN"], flagship_sample_domain))
+                                        for rel in sample_network[sample]["samples"]]))
         network = ", ".join(sample_network[sample]["networks"])
     else:
         relatedness = "N"
