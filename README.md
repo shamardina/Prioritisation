@@ -3,7 +3,7 @@ Disclaimer
 
 This set of scripts is not intended for general reuse as is. It is shared for reference, adaption and discussion. The input files are the result of the previous steps in the WGS-processing pipeline.
 
-The prioritisation script is written by Olga Shamardina based on previous work and experience of Karyn Megy, Sri Deevi and Rutendo Mapeta.
+The prioritisation script is written by Olga Shamardina based on previous work and experience of Karyn Megy, Sri Deevi, Rutendo Mapeta and Ernest Turro.
 
 
 Prioritisation of variants
